@@ -13,7 +13,7 @@
 ## 🛠️ Stack Technique
 
 * **Base de données :** PostgreSQL (PSQL)
-* **Backend :** API REST
+* **Backend :** symfony
 * **Front-end Web :** Application Web (Client) & Back-Office (Admin)
 * **Mobile :** Application Mobile (Client)
 * **IoT / Services :** Suivi GPS en temps réel & Paiements Mobile Money (MVola, Orange Money)
