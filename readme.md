@@ -1,67 +1,75 @@
-# 🚗 locaCar - Fleet Management
+# React + TypeScript + Vite
 
-**locaCar** est une solution complète de gestion de flotte et de location de véhicules comprenant un **Front-office web**, une **Application mobile**, un **Back-office d'administration** et une plateforme backend reliée à une base de données **PostgreSQL**.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## 👥 Équipe de Développement
-* **Haritony17**
-* **kareemnoumenjanahary**
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
----
+## React Compiler
 
-## 🛠️ Stack Technique
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-* **Base de données :** PostgreSQL (PSQL)
-* **Backend :** symfony
-* **Front-end Web :** Application Web (Client) & Back-Office (Admin)
-* **Mobile :** Application Mobile (Client)
-* **IoT / Services :** Suivi GPS en temps réel & Paiements Mobile Money (MVola, Orange Money)
+## Expanding the ESLint configuration
 
----
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## 🚀 Fonctionnalités Principales
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-### 1. 🌐 Espace Client (Web & Mobile)
-* **Recherche & Réservation :** 
-  * Recherche multicritère par agence, dates/heures et filtres (capacité, boîte de vitesse, carburant, tranche de prix).
-  * Calcul automatique du tarif total et vitrine des véhicules populaires.
-  * Fiche technique détaillée, galerie photos et avis des clients.
-* **Tunnel de Réservation :**
-  * Vérification administrative (Upload de permis de conduire et pièce d'identité).
-  * Options de paiement : Mobile Money (MVola, Orange Money) ou Cash au guichet.
-  * Génération de bon de réservation / contrat au format PDF.
-* **Espace "Mon Compte" :**
-  * Suivi du statut de validation des documents (KYC).
-  * Gestion du cycle de vie des réservations (prolonger, reporter, annuler).
-  * **Suivi GPS Live :** Carte interactive en temps réel affichant la position du véhicule et la distance parcourue pendant une location active.
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
----
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-### 2. ⚙️ Back-office d'Administration
-* **Tableaux de bord (Dashboards) :**
-  * **Suivi des Réservations :** Chiffre d'affaires, durée moyenne des réservations, répartition des statuts.
-  * **Performances de la Flotte :** Top des véhicules les plus demandés, kilométrage cumulé, suivi des dépenses d'entretien.
-* **Gestion de la Flotte (CRUD) :**
-  * Gestion complète des fiches véhicules (carte grise, assurance, contrôle technique).
-  * Tarifs dynamiques par véhicule avec tarif par défaut (fallback) par catégorie.
-  * Modification des statuts véhicules (`DISPONIBLE`, `LOUEE`, `NETTOYAGE`, `EN_MAINTENANCE`) avec enregistrement de l'historique.
-* **Suivi IoT & Cartographie GPS :**
-  * Association des boîtiers GPS aux véhicules.
-  * Visualisation en direct de toute la flotte sur carte interactive et replay de l'historique des trajets.
-* **Gestion des Réservations & KYC :**
-  * Validation/modération des documents clients.
-  * Calculateur automatique des pénalités de retard/kilométrage lors de la restitution.
-  * Enregistrement des coûts d'entretien et dépenses de maintenance.
+```
 
----
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## 🗄️ Base de Données
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-Le projet s'appuie sur une base de données **PostgreSQL**.
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-### Configuration de la BDD
-1. Assurez-vous d'avoir PostgreSQL installé et démarré sur votre machine.
-2. Créez la base de données :
-   ```sql
-   CREATE DATABASE locacar_db;
+```
