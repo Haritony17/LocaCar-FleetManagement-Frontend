@@ -7,7 +7,7 @@ export const mockVehicules: Vehicule[] = [
     immatriculation: '1234 TBA', statut: 'DISPONIBLE',
     tarif_journalier_specifique: null, tarif_defaut_categorie: 30, compteur_km_initial: 12500,
     note_moyenne: 4.5, nombre_avis: 12,
-    photo_url: 'https://images.unsplash.com/photo-1623869675184-6d0b1e7f3b9f?w=600&h=400&fit=crop',
+    photo_url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop',
   },
   {
     id_vehicule: '2', marque: 'Hyundai', modele: 'Tucson', categorie: 'SUV',

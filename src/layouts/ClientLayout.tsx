@@ -13,10 +13,10 @@ export default function ClientLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="flex gap-8 p-8 max-w-6xl mx-auto">
-        <aside className="w-56 flex flex-col gap-1">
+      <div className="flex flex-row gap-8 p-8 max-w-6xl mx-auto items-start">
+        <aside className="w-56 shrink-0 flex flex-col gap-1">
           {links.map((link) => {
             const Icon = link.icon;
             const active = location.pathname === link.to;
@@ -35,7 +35,9 @@ export default function ClientLayout() {
             );
           })}
         </aside>
-        <main className="flex-1"><Outlet /></main>
+        <main className="flex-1 min-w-0">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

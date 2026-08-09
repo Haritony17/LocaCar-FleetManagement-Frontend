@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/shared/Navbar';
 import { mockVehicules, mockAvis } from '@/data/mockVehicules';
+import { addReservation } from '@/data/reservationsStore';
+import { useAuth } from '@/context/AuthContext';
 
 export default function VehiculeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
 
@@ -19,7 +22,7 @@ export default function VehiculeDetails() {
 
   if (!vehicule) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <p className="p-8 text-muted-foreground">Véhicule introuvable.</p>
       </div>
@@ -32,8 +35,30 @@ export default function VehiculeDetails() {
   const tarifAffiche = vehicule.tarif_journalier_specifique ?? vehicule.tarif_defaut_categorie;
   const prixTotal = nombreJours * tarifAffiche;
 
+  const handleReserver = () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/vehicule/${id}` } });
+      return;
+    }
+    if (!dateDebut || !dateFin) {
+      alert('Merci de sélectionner les dates.');
+      return;
+    }
+    addReservation({
+      id_reservation: `R${Date.now()}`,
+      vehicule_marque: vehicule.marque,
+      vehicule_modele: vehicule.modele,
+      vehicule_photo: vehicule.photo_url,
+      date_debut: dateDebut,
+      date_fin: dateFin,
+      prix_total: prixTotal,
+      statut: 'A_VENIR',
+    });
+    navigate('/mon-compte/reservations');
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="flex gap-8 p-8 max-w-6xl mx-auto flex-wrap">
         <div className="flex-[2] min-w-[320px]">
@@ -85,7 +110,7 @@ export default function VehiculeDetails() {
               <p className="text-sm mb-4">{nombreJours} jour(s) × {tarifAffiche} $ = <strong>{prixTotal} $</strong></p>
             )}
 
-            <Button onClick={() => navigate('/login')} className="w-full">Réserver ce véhicule</Button>
+            <Button onClick={handleReserver} className="w-full">Réserver ce véhicule</Button>
           </CardContent>
         </Card>
       </div>

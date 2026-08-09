@@ -1,3 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+
 export interface Filtres {
   places: number | null;
   boite: string | null;
@@ -10,62 +16,65 @@ interface Props {
   onChange: (filtres: Filtres) => void;
 }
 
+const placesItems = [
+  { label: '2 places', value: '2' },
+  { label: '5 places', value: '5' },
+  { label: '7 places', value: '7' },
+];
+const boiteItems = [
+  { label: 'Manuelle', value: 'Manuelle' },
+  { label: 'Automatique', value: 'Automatique' },
+];
+const motorisationItems = [
+  { label: 'Essence', value: 'Essence' },
+  { label: 'Diesel', value: 'Diesel' },
+  { label: 'Électrique', value: 'Electrique' },
+  { label: 'Hybride', value: 'Hybride' },
+];
+
 export default function FiltresCatalogue({ filtres, onChange }: Props) {
   return (
-    <aside style={{
-      width: '220px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1.5rem',
-      padding: '1rem',
-      borderRight: '1px solid #e2e8f0',
-    }}>
-      <h3 style={{ margin: 0 }}>Filtres</h3>
+    <aside className="w-64 flex flex-col gap-6 p-5 bg-card rounded-2xl border h-fit">
+      <h3 className="font-semibold text-foreground">Filtres</h3>
 
       <div>
-        <label>Capacité (places)</label>
-        <select
-          value={filtres.places ?? ''}
-          onChange={(e) => onChange({ ...filtres, places: e.target.value ? Number(e.target.value) : null })}
-          style={{ width: '100%', padding: '0.4rem', marginTop: '0.25rem' }}
+        <Label className="text-xs text-muted-foreground uppercase tracking-wide">Capacité</Label>
+        <Select
+          items={placesItems}
+          value={filtres.places ? String(filtres.places) : null}
+          onValueChange={(val) => onChange({ ...filtres, places: val ? Number(val) : null })}
         >
-          <option value="">Toutes</option>
-          <option value="2">2 places</option>
-          <option value="5">5 places</option>
-          <option value="7">7 places</option>
-        </select>
+          <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Toutes" /></SelectTrigger>
+          <SelectContent>
+            {placesItems.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <label>Boîte de vitesse</label>
-        <select
-          value={filtres.boite ?? ''}
-          onChange={(e) => onChange({ ...filtres, boite: e.target.value || null })}
-          style={{ width: '100%', padding: '0.4rem', marginTop: '0.25rem' }}
-        >
-          <option value="">Toutes</option>
-          <option value="Manuelle">Manuelle</option>
-          <option value="Automatique">Automatique</option>
-        </select>
+        <Label className="text-xs text-muted-foreground uppercase tracking-wide">Boîte de vitesse</Label>
+        <Select items={boiteItems} value={filtres.boite} onValueChange={(val) => onChange({ ...filtres, boite: val })}>
+          <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Toutes" /></SelectTrigger>
+          <SelectContent>
+            {boiteItems.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <label>Motorisation</label>
-        <select
-          value={filtres.motorisation ?? ''}
-          onChange={(e) => onChange({ ...filtres, motorisation: e.target.value || null })}
-          style={{ width: '100%', padding: '0.4rem', marginTop: '0.25rem' }}
-        >
-          <option value="">Toutes</option>
-          <option value="Essence">Essence</option>
-          <option value="Diesel">Diesel</option>
-          <option value="Electrique">Électrique</option>
-          <option value="Hybride">Hybride</option>
-        </select>
+        <Label className="text-xs text-muted-foreground uppercase tracking-wide">Motorisation</Label>
+        <Select items={motorisationItems} value={filtres.motorisation} onValueChange={(val) => onChange({ ...filtres, motorisation: val })}>
+          <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Toutes" /></SelectTrigger>
+          <SelectContent>
+            {motorisationItems.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <label>Prix max : {filtres.prixMax} $/jour</label>
+        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+          Prix max : <span className="text-teal-600 font-semibold">{filtres.prixMax} $/jour</span>
+        </Label>
         <input
           type="range"
           min={20}
@@ -73,16 +82,16 @@ export default function FiltresCatalogue({ filtres, onChange }: Props) {
           step={5}
           value={filtres.prixMax}
           onChange={(e) => onChange({ ...filtres, prixMax: Number(e.target.value) })}
-          style={{ width: '100%', marginTop: '0.25rem' }}
+          className="w-full mt-2 accent-teal-600"
         />
       </div>
 
-      <button
+      <Button
+        variant="outline"
         onClick={() => onChange({ places: null, boite: null, motorisation: null, prixMax: 100 })}
-        style={{ padding: '0.5rem', background: '#f1f5f9', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
       >
         Réinitialiser
-      </button>
+      </Button>
     </aside>
   );
 }

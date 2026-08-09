@@ -1,32 +1,16 @@
 import { Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
+import { useAuth, type Role } from '@/context/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  role: 'admin' | 'client';
-}
-
-interface TokenPayload {
-  roles: string[];
+  role: Role;
 }
 
 export default function ProtectedRoute({ children, role }: ProtectedRouteProps) {
-  const token = localStorage.getItem('token');
+  const { user, isAuthenticated } = useAuth();
 
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  try {
-    const decoded = jwtDecode<TokenPayload>(token);
-    const hasRole = decoded.roles.includes(`ROLE_${role.toUpperCase()}`);
-
-    if (!hasRole) {
-      return <Navigate to="/" replace />;
-    }
-  } catch {
-    return <Navigate to="/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== role) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }
