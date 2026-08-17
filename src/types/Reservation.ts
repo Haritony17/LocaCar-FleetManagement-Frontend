@@ -1,12 +1,24 @@
-export type StatutReservation = 'A_VENIR' | 'EN_COURS' | 'TERMINEE' | 'ANNULEE';
+export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
 
-export interface Reservation {
-  id_reservation: string;
-  vehicule_marque: string;
-  vehicule_modele: string;
-  vehicule_photo: string;
-  date_debut: string;
-  date_fin: string;
-  prix_total: number;
-  statut: StatutReservation;
+export interface ReservationApi {
+  id: string;
+  startDate: string;
+  endDate: string;
+  actualReturnDate: string | null;
+  status: ReservationStatus;
+  dailyRate: string;
+  totalPrice: string;
+  depositAmount: string;
+  cancellationReason: string | null;
+  createdAt: string;
+  vehicleId: string;
+  userId: string;
+}
+
+export interface PaginatedReservations {
+  items: ReservationApi[];
+  totalItems: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

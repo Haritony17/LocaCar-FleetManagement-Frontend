@@ -11,15 +11,19 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [erreur, setErreur] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErreur('');
+    setLoading(true);
 
-    const result = login(email, motDePasse);
+    const result = await login(email, motDePasse);
+    setLoading(false);
+
     if (!result.success) {
       setErreur('Email ou mot de passe incorrect.');
       return;
@@ -31,11 +35,11 @@ export default function Login() {
 
   const remplirDemo = (type: 'admin' | 'client') => {
     if (type === 'admin') {
-      setEmail('admin@locacar.mg');
-      setMotDePasse('admin123');
+      setEmail('admin@locacar.com');
+      setMotDePasse('');
     } else {
-      setEmail('client@locacar.mg');
-      setMotDePasse('client123');
+      setEmail('user@locacar.com');
+      setMotDePasse('');
     }
   };
 
@@ -61,7 +65,9 @@ export default function Login() {
 
               {erreur && <p className="text-sm text-red-600">{erreur}</p>}
 
-              <Button type="submit" className="mt-2">Se connecter</Button>
+              <Button type="submit" disabled={loading} className="mt-2">
+                {loading ? 'Connexion...' : 'Se connecter'}
+              </Button>
 
               <p className="text-center text-sm text-muted-foreground">
                 Pas encore de compte ? <Link to="/register" className="text-teal-600 font-medium hover:underline">S'inscrire</Link>
@@ -69,7 +75,7 @@ export default function Login() {
             </form>
 
             <div className="mt-6 pt-6 border-t">
-              <p className="text-xs text-muted-foreground mb-3 text-center">Comptes de démonstration</p>
+              <p className="text-xs text-muted-foreground mb-3 text-center">Comptes de démonstration (remplit l'email, tape le mot de passe)</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => remplirDemo('admin')}>
                   👤 Admin

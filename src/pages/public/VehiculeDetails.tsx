@@ -1,97 +1,133 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/shared/Navbar';
-import { mockVehicules, mockAvis } from '@/data/mockVehicules';
-import { addReservation } from '@/data/reservationsStore';
+import { fetchVehicles, type Vehicle } from '@/services/vehiclesApi';
 import { useAuth } from '@/context/AuthContext';
+import { createReservation } from '@/services/reservationCreateApi';
+
+const boiteFr: Record<string, string> = { MANUAL: 'Manuelle', AUTOMATIC: 'Automatique' };
+const motorisationFr: Record<string, string> = { PETROL: 'Essence', DIESEL: 'Diesel', HYBRID: 'Hybride', ELECTRIC: 'Électrique' };
 
 export default function VehiculeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [reservationLoading, setReservationLoading] = useState(false);
+
+  const [vehicule, setVehicule] = useState<Vehicle | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [erreur, setErreur] = useState('');
+
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
 
-  const vehicule = mockVehicules.find((v) => v.id_vehicule === id);
-  const avis = mockAvis.filter((a) => a.id_vehicule === id);
+  useEffect(() => {
+    fetchVehicles()
+      .then((all) => {
+        const found = all.find((v) => v.id === id);
+        if (!found) {
+          setErreur('Véhicule introuvable.');
+        } else {
+          setVehicule(found);
+        }
+      })
+      .catch(() => setErreur('Impossible de charger ce véhicule.'))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  if (!vehicule) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <p className="p-8 text-muted-foreground">Véhicule introuvable.</p>
+        <p className="p-8 text-muted-foreground">Chargement...</p>
       </div>
     );
   }
 
+  if (erreur || !vehicule) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <p className="p-8 text-muted-foreground">{erreur || 'Véhicule introuvable.'}</p>
+      </div>
+    );
+  }
+
+  const tarifAffiche = parseFloat(vehicule.effectiveDailyRate);
+  const note = parseFloat(vehicule.averageRating) || 0;
+
   const nombreJours = dateDebut && dateFin
     ? Math.max(1, Math.ceil((new Date(dateFin).getTime() - new Date(dateDebut).getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
-  const tarifAffiche = vehicule.tarif_journalier_specifique ?? vehicule.tarif_defaut_categorie;
   const prixTotal = nombreJours * tarifAffiche;
+  const toAtomFormat = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toISOString().replace(/\.\d{3}Z$/, '+00:00');
+};
 
-  const handleReserver = () => {
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: `/vehicule/${id}` } });
-      return;
-    }
-    if (!dateDebut || !dateFin) {
-      alert('Merci de sélectionner les dates.');
-      return;
-    }
-    addReservation({
-      id_reservation: `R${Date.now()}`,
-      vehicule_marque: vehicule.marque,
-      vehicule_modele: vehicule.modele,
-      vehicule_photo: vehicule.photo_url,
-      date_debut: dateDebut,
-      date_fin: dateFin,
-      prix_total: prixTotal,
-      statut: 'A_VENIR',
+ const handleReserver = async () => {
+  if (!isAuthenticated || !user) {
+    navigate('/login', { state: { from: `/vehicule/${id}` } });
+    return;
+  }
+  if (!dateDebut || !dateFin) {
+    alert('Merci de sélectionner les dates.');
+    return;
+  }
+
+  setReservationLoading(true);
+  try {
+    await createReservation({
+      startDate: toAtomFormat(dateDebut),
+      endDate: toAtomFormat(dateFin),
+      vehicleId: vehicule.id,
+      userId: user.id,
     });
     navigate('/mon-compte/reservations');
-  };
+  } catch (err: any) {
+    alert(err?.response?.data?.detail || 'Erreur lors de la création de la réservation.');
+  } finally {
+    setReservationLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="flex gap-8 p-8 max-w-6xl mx-auto flex-wrap">
         <div className="flex-[2] min-w-[320px]">
-          <img src={vehicule.photo_url} alt={`${vehicule.marque} ${vehicule.modele}`} className="w-full max-h-96 object-cover rounded-2xl" />
+          <div className="w-full h-72 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground">
+            {vehicule.brand} {vehicule.model}
+          </div>
 
           <div className="flex items-center gap-3 mt-4">
-            <h1 className="text-2xl font-bold">{vehicule.marque} {vehicule.modele}</h1>
+            <h1 className="text-2xl font-bold">{vehicule.brand} {vehicule.model}</h1>
             <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">● Disponible</Badge>
           </div>
-          <p className="text-muted-foreground">{vehicule.categorie} · {vehicule.anee}</p>
+          <p className="text-muted-foreground">{vehicule.year}</p>
 
           <Card className="mt-6">
             <CardContent className="p-5">
               <h2 className="font-semibold mb-3">Fiche technique</h2>
               <ul className="text-sm text-muted-foreground grid grid-cols-2 gap-2">
-                <li>Places : {vehicule.nombre_places}</li>
-                <li>Boîte : {vehicule.type_boite_vitesse}</li>
-                <li>Motorisation : {vehicule.motorisation}</li>
-                <li>Immatriculation : {vehicule.immatriculation}</li>
+                <li>Places : {vehicule.seats}</li>
+                <li>Boîte : {boiteFr[vehicule.gearboxType] ?? vehicule.gearboxType}</li>
+                <li>Motorisation : {motorisationFr[vehicule.fuelType] ?? vehicule.fuelType}</li>
+                <li>Immatriculation : {vehicule.licensePlate}</li>
+                <li>Kilométrage : {Number(vehicule.initialMileage).toLocaleString('fr-FR')} km</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card className="mt-6">
             <CardContent className="p-5">
-              <h2 className="font-semibold mb-3">Avis clients ⭐ {vehicule.note_moyenne} ({vehicule.nombre_avis})</h2>
-              {avis.length === 0 && <p className="text-sm text-muted-foreground">Aucun avis pour l'instant.</p>}
-              {avis.map((a) => (
-                <div key={a.id} className="border-t py-3 first:border-t-0 first:pt-0">
-                  <p className="font-medium text-sm">{a.auteur} — {'⭐'.repeat(a.note)}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{a.commentaire}</p>
-                </div>
-              ))}
+              <h2 className="font-semibold mb-3">Avis clients ⭐ {note.toFixed(1)} ({vehicule.reviewsCount})</h2>
+              <p className="text-sm text-muted-foreground">Aucun avis pour l'instant.</p>
             </CardContent>
           </Card>
         </div>
@@ -110,7 +146,9 @@ export default function VehiculeDetails() {
               <p className="text-sm mb-4">{nombreJours} jour(s) × {tarifAffiche} $ = <strong>{prixTotal} $</strong></p>
             )}
 
-            <Button onClick={handleReserver} className="w-full">Réserver ce véhicule</Button>
+           <Button onClick={handleReserver} disabled={reservationLoading} className="w-full">
+  {reservationLoading ? 'Réservation...' : 'Réserver ce véhicule'}
+</Button>
           </CardContent>
         </Card>
       </div>
