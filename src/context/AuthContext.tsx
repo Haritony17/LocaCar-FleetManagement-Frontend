@@ -77,14 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    try {
-      await api.post('/users/register', data);
-      return { success: true };
-    } catch (err: any) {
-      const message = err?.response?.data?.detail || err?.response?.data?.message || "Erreur lors de l'inscription.";
-      return { success: false, error: message };
-    }
-  };
+  try {
+    await api.post('/users/register', data);
+    return { success: true };
+  } catch (err: any) {
+    const message = err?.response?.data?.errors || err?.response?.data?.detail || err?.response?.data?.message || "Erreur lors de l'inscription.";
+    return { success: false, error: message };
+  }
+};
 
   const logout = () => {
     setUser(null);

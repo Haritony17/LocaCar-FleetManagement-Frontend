@@ -5,18 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/shared/Navbar';
-import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
 
 export default function Register() {
   const [nom, setNom] = useState('');
   const [prenom, setPrenom] = useState('');
   const [email, setEmail] = useState('');
   const [telephone, setTelephone] = useState('');
+  const [adresse, setAdresse] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [confirmMotDePasse, setConfirmMotDePasse] = useState('');
   const [erreur, setErreur] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,20 +34,32 @@ export default function Register() {
       setErreur('Le mot de passe doit contenir au moins 8 caractères.');
       return;
     }
+    if (!PASSWORD_REGEX.test(motDePasse)) {
+      setErreur('Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial.');
+      return;
+    }
 
     setLoading(true);
-    try {
-      await api.post('/register', { nom, prenom, email, telephone, mot_de_passe: motDePasse });
-      navigate('/login');
-    } catch {
-      setErreur("Une erreur est survenue lors de l'inscription.");
-    } finally {
-      setLoading(false);
+    const result = await register({
+      email,
+      password: motDePasse,
+      firstName: prenom,
+      lastName: nom,
+      address: adresse || undefined,
+      phone: telephone || undefined,
+    });
+    setLoading(false);
+
+    if (!result.success) {
+      setErreur(typeof result.error === 'string' ? result.error : "Une erreur est survenue lors de l'inscription.");
+      return;
     }
+
+    navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="flex justify-center py-16 px-4">
         <Card className="w-full max-w-md">
@@ -70,12 +86,20 @@ export default function Register() {
 
               <div>
                 <Label htmlFor="telephone">Téléphone</Label>
-                <Input id="telephone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} required className="mt-1" />
+                <Input id="telephone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} className="mt-1" />
+              </div>
+
+              <div>
+                <Label htmlFor="adresse">Adresse</Label>
+                <Input id="adresse" value={adresse} onChange={(e) => setAdresse(e.target.value)} className="mt-1" />
               </div>
 
               <div>
                 <Label htmlFor="password">Mot de passe</Label>
                 <Input id="password" type="password" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)} required className="mt-1" />
+                <p className="text-xs text-muted-foreground mt-1">
+                  8 caractères min., avec majuscule, minuscule, chiffre et caractère spécial.
+                </p>
               </div>
 
               <div>

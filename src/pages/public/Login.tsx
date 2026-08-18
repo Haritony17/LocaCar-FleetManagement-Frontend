@@ -30,17 +30,7 @@ export default function Login() {
     }
 
     const from = (location.state as { from?: string })?.from;
-    navigate(from ?? (result.role === 'admin' ? '/admin/dashboard' : '/mon-compte'));
-  };
-
-  const remplirDemo = (type: 'admin' | 'client') => {
-    if (type === 'admin') {
-      setEmail('admin@locacar.com');
-      setMotDePasse('');
-    } else {
-      setEmail('user@locacar.com');
-      setMotDePasse('');
-    }
+    navigate(from ?? '/mon-compte');
   };
 
   return (
@@ -73,18 +63,6 @@ export default function Login() {
                 Pas encore de compte ? <Link to="/register" className="text-teal-600 font-medium hover:underline">S'inscrire</Link>
               </p>
             </form>
-
-            <div className="mt-6 pt-6 border-t">
-              <p className="text-xs text-muted-foreground mb-3 text-center">Comptes de démonstration (remplit l'email, tape le mot de passe)</p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => remplirDemo('admin')}>
-                  👤 Admin
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => remplirDemo('client')}>
-                  👤 Client
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

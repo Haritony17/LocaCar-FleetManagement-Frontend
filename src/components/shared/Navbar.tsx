@@ -29,11 +29,8 @@ export default function Navbar() {
 
         {isAuthenticated ? (
           <>
-            <Link
-              to={user?.role === 'admin' ? '/admin/dashboard' : '/mon-compte'}
-              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-            >
-              {user?.nom}
+            <Link to="/mon-compte" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+              {user?.email}
             </Link>
             <Button variant="outline" onClick={handleLogout}>Déconnexion</Button>
           </>
