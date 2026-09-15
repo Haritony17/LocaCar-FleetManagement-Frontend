@@ -5,10 +5,8 @@ export async function createReservation(data: {
   endDate: string;
   vehicleId: string;
   userId: string;
+  depositAmount: string;
 }) {
-  const res = await api.post('/reservations', {
-    ...data,
-    depositAmount: '0.00',
-  });
+  const res = await api.post('/reservations', data);
   return res.data;
 }

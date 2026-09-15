@@ -82,12 +82,14 @@ export default function VehiculeDetails() {
 
   setReservationLoading(true);
   try {
-    await createReservation({
-      startDate: toAtomFormat(dateDebut),
-      endDate: toAtomFormat(dateFin),
-      vehicleId: vehicule.id,
-      userId: user.id,
-    });
+    const acompte = (prixTotal / 2).toFixed(2);
+      await createReservation({
+  startDate: toAtomFormat(dateDebut),
+  endDate: toAtomFormat(dateFin),
+  vehicleId: vehicule.id,
+  userId: user.id,
+  depositAmount: acompte,
+});
     navigate('/mon-compte/reservations');
   } catch (err: any) {
     alert(err?.response?.data?.detail || 'Erreur lors de la création de la réservation.');

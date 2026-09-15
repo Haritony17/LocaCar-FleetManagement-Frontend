@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import type { ReservationApi, ReservationStatus, PaginatedReservations } from '@/types/Reservation';
+import PaiementAcompteDialog from '@/components/shared/PaiementAcompteDialog';
 
 const statutLabel: Record<ReservationStatus, string> = {
   PENDING: 'En attente',
@@ -30,19 +31,24 @@ export default function MesReservations() {
   const [reservations, setReservations] = useState<ReservationApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [erreur, setErreur] = useState('');
-useEffect(() => {
-  if (!user) return;
-  api.get<PaginatedReservations>('/reservations', { params: { userId: user.id, page: 1, limit: 100 } })
-    .then((res) => setReservations(res.data.items))
-    .catch((err) => {
-      if (err?.response?.status === 403) {
-        setErreur("Cette fonctionnalité arrive bientôt — l'accès à tes réservations est en cours de finalisation côté serveur.");
-      } else {
-        setErreur('Impossible de charger tes réservations.');
-      }
-    })
-    .finally(() => setLoading(false));
-}, [user]);
+
+  const [dialogReservation, setDialogReservation] = useState<ReservationApi | null>(null);
+  const [acomptesPayes, setAcomptesPayes] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    api.get<PaginatedReservations>('/reservations', { params: { userId: user.id, page: 1, limit: 100 } })
+      .then((res) => setReservations(res.data.items))
+      .catch((err) => {
+        if (err?.response?.status === 403) {
+          setErreur("Cette fonctionnalité arrive bientôt — l'accès à tes réservations est en cours de finalisation côté serveur.");
+        } else {
+          setErreur('Impossible de charger tes réservations.');
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [user]);
+
   const categories: ReservationStatus[] = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 
   if (loading) return <p className="text-muted-foreground">Chargement...</p>;
@@ -77,31 +83,65 @@ useEffect(() => {
                 </p>
               )}
 
-              {filtered.map((r) => (
-                <Card key={r.id} className="overflow-hidden">
-                  <CardContent className="p-4 flex gap-4 items-center flex-wrap">
-                    <div className="flex-1 min-w-[180px]">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className={`${statutColor[r.status]} border-none`}>
-                          {statutLabel[r.status]}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Du {new Date(r.startDate).toLocaleDateString('fr-FR')} au {new Date(r.endDate).toLocaleDateString('fr-FR')}
-                      </p>
-                      <p className="text-sm font-medium mt-1">{r.totalPrice} $</p>
-                    </div>
+              {filtered.map((r) => {
+                const depositAmount = parseFloat(r.depositAmount);
+                const acompteDejaEnvoye = acomptesPayes.has(r.id);
 
-                    {(cat === 'PENDING' || cat === 'CONFIRMED') && (
-                      <Badge variant="outline">Modification possible via l'agence</Badge>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                return (
+                  <Card key={r.id} className="overflow-hidden">
+                    <CardContent className="p-4 flex gap-4 items-center flex-wrap">
+                      <div className="flex-1 min-w-[180px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className={`${statutColor[r.status]} border-none`}>
+                            {statutLabel[r.status]}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Du {new Date(r.startDate).toLocaleDateString('fr-FR')} au {new Date(r.endDate).toLocaleDateString('fr-FR')}
+                        </p>
+                        <p className="text-sm font-medium mt-1">{r.totalPrice} $</p>
+                        {depositAmount > 0 && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Acompte requis : {r.depositAmount} $
+                          </p>
+                        )}
+                      </div>
+
+                      {cat === 'PENDING' && depositAmount > 0 && (
+                        acompteDejaEnvoye ? (
+                          <Badge variant="outline" className="text-emerald-700 border-emerald-300">
+                            Paiement envoyé, en attente de confirmation
+                          </Badge>
+                        ) : (
+                          <Button size="sm" onClick={() => setDialogReservation(r)}>
+                            Payer l'acompte
+                          </Button>
+                        )
+                      )}
+
+                      {(cat === 'PENDING' || cat === 'CONFIRMED') && (
+                        <Badge variant="outline">Modification possible via l'agence</Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </TabsContent>
           );
         })}
       </Tabs>
+
+      {dialogReservation && (
+        <PaiementAcompteDialog
+          open={!!dialogReservation}
+          onOpenChange={(open) => !open && setDialogReservation(null)}
+          reservationId={dialogReservation.id}
+          montant={dialogReservation.depositAmount}
+          onSuccess={() => {
+            setAcomptesPayes((prev) => new Set(prev).add(dialogReservation.id));
+          }}
+        />
+      )}
     </div>
   );
 }
