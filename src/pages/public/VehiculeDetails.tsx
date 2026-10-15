@@ -9,6 +9,7 @@ import Navbar from '@/components/shared/Navbar';
 import { fetchVehicles, type Vehicle } from '@/services/vehiclesApi';
 import { useAuth } from '@/context/AuthContext';
 import { createReservation } from '@/services/reservationCreateApi';
+import { getOrCreateMyCustomer } from '@/services/customersApi';
 
 const boiteFr: Record<string, string> = { MANUAL: 'Manuelle', AUTOMATIC: 'Automatique' };
 const motorisationFr: Record<string, string> = { PETROL: 'Essence', DIESEL: 'Diesel', HYBRID: 'Hybride', ELECTRIC: 'Électrique' };
@@ -82,14 +83,15 @@ export default function VehiculeDetails() {
 
   setReservationLoading(true);
   try {
+    const customer = await getOrCreateMyCustomer();
     const acompte = (prixTotal / 2).toFixed(2);
-      await createReservation({
-  startDate: toAtomFormat(dateDebut),
-  endDate: toAtomFormat(dateFin),
-  vehicleId: vehicule.id,
-  userId: user.id,
-  depositAmount: acompte,
-});
+    await createReservation({
+      startDate: toAtomFormat(dateDebut),
+      endDate: toAtomFormat(dateFin),
+      vehicleId: vehicule.id,
+      customerId: customer.id,
+      depositAmount: acompte,
+    });
     navigate('/mon-compte/reservations');
   } catch (err: any) {
     alert(err?.response?.data?.detail || 'Erreur lors de la création de la réservation.');
