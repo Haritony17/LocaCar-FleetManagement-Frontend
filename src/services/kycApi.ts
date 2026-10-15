@@ -15,13 +15,16 @@ export async function fetchMyDocuments(): Promise<DocumentKyc[]> {
   return res.data;
 }
 
-export async function uploadKycDocument(documentType: 'CIN' | 'DRIVING_LICENSE', file: File) {
+export async function uploadKycDocument(
+  documentType: 'CIN' | 'DRIVING_LICENSE',
+  file: File
+) {
   const formData = new FormData();
-  formData.append('documentType', documentType);
-  formData.append('file', file);
 
-  const res = await api.post('/kyc/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return res.data;
+  formData.append('documentType', documentType);
+  formData.append('file', file, file.name);
+
+  const response = await api.post('/kyc/upload', formData);
+
+  return response.data;
 }
